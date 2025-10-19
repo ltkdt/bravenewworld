@@ -12,22 +12,39 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env(DEBUG=(bool, False))
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h*(nxiefniwybjug6jn6!a*ib(b+1*j1h-yz5dql0r1$@e7o2u'
+SECRET_KEY = env.str(
+  "SECRET_KEY", 
+  default="django-insecure-h*(nxiefniwybjug6jn6!a*ib(b+1*j1h-yz5dql0r1$@e7o2u",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+DEBUG = env.bool("DEBUG", default=True)  # new
+
+#ALLOWED_HOSTS = ['https://fly.io/apps/processing/monitoring', 'https://processing.fly.dev', 'http://127.0.0.1:8000/']
+
+ALLOWED_HOSTS = ["bravenewworld-sparc.fly.dev", "localhost", "127.0.0.1"]  
+CSRF_TRUSTED_ORIGINS = ["https://bravenewworld-sparc.fly.dev"]  
+
+#CSRF_TRUSTED_ORIGINS = ['https://fly.io/apps/processing/monitoring', 'https://processing.fly.dev']
+
+
+'''
 DEBUG = True
-
 ALLOWED_HOSTS = []
-
+'''
 
 # Application definition
 
@@ -38,12 +55,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "django.contrib.gis",
+    #"django.contrib.gis",
     "geoApp",
+    "whitenoise.runserver_nostatic",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,15 +97,21 @@ WSGI_APPLICATION = 'geoview.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'geoapp',         # <-- Replace with your database name
+        'NAME': 'lsdb',         # <-- Replace with your database name
         'USER': 'postgres',         # <-- Replace with your database user
         'PASSWORD': 'ku754g93', # <-- Replace with your database password
         'HOST': 'localhost',            # Or your DB host
         'PORT': '5432',                 # Default PostgreSQL port
     },
+}
+'''
+
+DATABASES = {
+    "default": env.db_url("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
 
 
@@ -124,7 +149,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+#STATIC_URL = 'static/'
+STATIC_URL = "static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'static'),
+                    os.path.join(BASE_DIR,'geoApp', 'templates', 'geoApp')]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE ="whitenoise.storage.CompressedManifestStaticFilesStorage" 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -133,8 +163,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "media/"
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR,'static')
-]
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/data/media'

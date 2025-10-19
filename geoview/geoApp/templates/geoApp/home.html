@@ -10,7 +10,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>GeospatialIntelligence</title>
+  <title>Land Subsidence</title>
 
   <!-- Bootstrap core CSS -->
   <link rel="stylesheet" href="{% static '/bootstrap/css/bootstrap.min.css' %}">
@@ -61,16 +61,17 @@
     <div class="row">
 
       <div class="col-lg-12 text-center">
-        <h1 class="mt-5">Nghiên cứu và phân tích hiện tượng sụt lún sói mòn đất miền núi phía Bắc từ ảnh vệ tinh SAR</h1>
-        <p class="lead text-danger">Sản phẩm của đội thi Brave New World</p>
+        <h1 class="mt-5">Research and Analysis of Land Subsidence and Erosion in the Northern Mountainous Region of Vietnam</h1>
+        <p class="lead text-danger">From Brave New World, a team in NASA Space Apps Challenge</p>
 
     <form id="coordForm" action="/revClick/" method="POST">
           <div class="row justify-content-center mb-2">
             <div class="col-12">
-              <label class="form-label h5">Hướng dẫn sử dụng</label>
+              <label class="form-label h5">How to use</label>
               <div class="text-muted small mt-2">
-                Hãy chọn khoảng thời gian hoặc để 2 form ngày giống nhau để chọn 1 ngày.<br>
-                Nhấn 1 tọa độ ở trên bản đồ rồi submit & hệ thống sẽ tìm điểm gần nhất với những khu vực có sẵn.
+                Please select the period of time you want to examine or two identical dates to chooose a single day <br>
+                Then select a coordinate in the area of your interest and the system will try to detect the closest location <br>
+                where data is available. 
               </div>
             </div>
           </div>
@@ -99,6 +100,89 @@
 
     <div class="mb-5"></div> <!-- Adds extra space below the map -->
 
+    <!-- Dividing line -->
+  <hr class="my-5">
+
+  <!-- Section with typewriter effect -->
+  <div class="container text-center" style="min-height: 80px;">
+    <h2 id="typewriter" class="fw-bold"></h2>
+  </div>
+
+  <script>
+    // Typewriter effect - recurring every 10 seconds
+    const text = "Synthetic Aperture Radar (SAR) can revolutionise earth observation, and we're applying it to monitor land subsidence and erosion";
+    const typewriterElement = document.getElementById('typewriter');
+    let index = 0;
+
+    function typeWriter() {
+      if (index < text.length) {
+        typewriterElement.textContent += text.charAt(index);
+        index++;
+        setTimeout(typeWriter, 50); // Adjust speed (ms per character)
+      } else {
+        // Wait 10 seconds, then clear and restart
+        setTimeout(() => {
+          typewriterElement.textContent = '';
+          index = 0;
+          typeWriter();
+        }, 10000); // 10 seconds pause before restarting
+      }
+    }
+
+    // Start typewriter effect after page loads
+    window.addEventListener('load', typeWriter);
+  </script>
+
+  <!-- Dark container with white text below typewriter -->
+  <div class="container my-5">
+    <div class="bg-dark text-white p-4 rounded-3 fs-5" style="text-align:left; border-radius:12px; max-width:1100px; margin: 1.5rem auto;">
+      <p>Synthetic Aperture Radar (SAR) technology has revolutionized our ability 
+to monitor and predict land subsidence, offering a powerful tool for early 
+warning systems that protect communities and infrastructure. By employing 
+satellite-based radar interferometry (InSAR), we can detect millimeter-scale
+ground movements over vast areas with unprecedented precision, transforming
+how we address this invisible but destructive geological hazard.</p>
+
+      <p>The fundamental principle behind SAR-based subsidence monitoring lies in 
+comparing phase differences between multiple radar images acquired over the 
+same location at different times. Techniques such as Persistent Scatterer 
+InSAR (PS-InSAR) and Small Baseline Subset (SBAS) analysis enable 
+researchers to track subtle ground deformations across urban and rural 
+landscapes. What makes SAR particularly valuable is its all-weather, 
+day-night capability, allowing continuous monitoring regardless of 
+atmospheric conditions—a critical advantage for operational warning systems.</p>
+
+      <p>The application process begins with acquiring time-series SAR data from 
+missions like Sentinel-1, which provides regular global coverage every six 
+days. Advanced processing algorithms then generate displacement maps 
+revealing patterns of ground settlement, often identifying subsidence 
+hotspots long before surface damage becomes visible. In delta regions like 
+the Mekong Delta or urban centers such as Jakarta, SAR has detected 
+subsidence rates exceeding several centimeters per year, providing crucial 
+data for urban planning and infrastructure protection.</p>
+
+      <p>Early warning systems leveraging SAR data operate on multiple timescales. 
+Long-term trends help identify areas requiring structural reinforcements or 
+land-use restrictions, while accelerated deformation rates can trigger 
+immediate alerts for infrastructure operators and emergency services. The 
+integration of SAR data with groundwater monitoring, geological surveys, and
+building inventories creates a comprehensive risk assessment framework, 
+enabling proactive rather than reactive disaster management.</p>
+
+      <p>The societal benefits are substantial. Cities can prioritize infrastructure 
+maintenance, insurance companies can refine risk models, and communities can
+implement adaptive measures before catastrophic damage occurs. As climate 
+change and urbanization intensify subsidence risks in vulnerable regions, 
+SAR technology stands as a sentinel in the sky, offering the foresight 
+needed to build more resilient societies. By translating satellite 
+observations into actionable intelligence, we move closer to preventing 
+subsidence disasters rather than merely responding to their consequences.</p>
+
+      <div class="d-flex justify-content-center mt-3">
+        <a href="./dem.html" class="btn btn-lg" style="background-color:#00AEEF; border-color:#00AEEF; color:#ffffff;">Check out our 3D DEM model built using SAR image</a>
+      </div>
+    </div>
+  </div>
 
         <ul class="list-unstyled">
           <li>Brave New World</li>
