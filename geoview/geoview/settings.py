@@ -97,12 +97,24 @@ WSGI_APPLICATION = 'geoview.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'geoapp',         # <-- Replace with your database name
         'USER': 'postgres',         # <-- Replace with your database user
+        'PASSWORD': 'ku754g93', # <-- Replace with your database password
+        'HOST': 'localhost',            # Or your DB host
+        'PORT': '5432',                 # Default PostgreSQL port
+    },
+}
+'''
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'bravenewworld',         # <-- Replace with your database name
+        'USER': 'ltkdt',         # <-- Replace with your database user
         'PASSWORD': 'ku754g93', # <-- Replace with your database password
         'HOST': 'localhost',            # Or your DB host
         'PORT': '5432',                 # Default PostgreSQL port
