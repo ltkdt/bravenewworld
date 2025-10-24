@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'geoview.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-'''
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -108,8 +108,8 @@ DATABASES = {
         'PORT': '5432',                 # Default PostgreSQL port
     },
 }
-'''
 
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -121,7 +121,7 @@ DATABASES = {
     },
 }
 
-'''
+
 DATABASES = {
     "default": env.db_url("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
@@ -173,6 +173,10 @@ STATICFILES_STORAGE ="whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = "media/"
+MEDIA_URL = '/media/'
 
-MEDIA_ROOT = '/data/media'
+# Store uploaded media inside the project during development so the
+# dev server and local user have a writable location. Previously this
+# pointed to '/data/media' which required root access and caused
+# PermissionError when admin tried to replace files.
+MEDIA_ROOT = BASE_DIR / "media"
