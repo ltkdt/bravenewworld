@@ -6,6 +6,7 @@ We are Brave New World, a team of students from SPARC Lab, Hanoi University of S
 Techonology participating in this year NASA Space Apps Challenge 2025.
 
 This is our website built with Django intended to be used for analysis of land subsidence.
+The website is currently hosted on https://bravenewworldsparc.dev/
 Right now, the supported location are Cao Bang, Ha Giang and Son La of Vietnam, and please choose a 
 time range that has the year 2007 to 2009.
 
