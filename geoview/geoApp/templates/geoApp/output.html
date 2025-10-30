@@ -62,6 +62,77 @@
       position: sticky;
       top: 0;
     }
+   .raster-map-responsive {
+     width: 100%;
+     max-width: 1100px;        /* container max width (matches page layout), not absolute map size */
+     margin: 1.5rem auto;
+     position: relative;
+     /* Use modern aspect-ratio so we don't depend on padding hacks */
+     aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+
+  /* Force any folium/leaflet generated map container to fully fill the wrapper
+    and override inline height styles that can create stray empty space. */
+  .raster-map-responsive iframe,
+  .raster-map-responsive > div,
+  .raster-map-responsive .leaflet-container,
+  .raster-map-responsive .folium-map {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* If folium outputs an extra sibling empty div after the map, collapse it */
+  .raster-map-responsive > div + div { display: none !important; }
+
+   /* Raster info box: centered, rounded, same max-width as the map and larger text */
+   .raster-info {
+     max-width: 1100px;
+     margin: 0.9rem auto 1.5rem;
+     background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+     border-radius: 12px;
+     padding: 18px 22px;
+     box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+     font-size: 1.05rem; /* slightly larger body text */
+     color: #212529;
+     line-height: 1.45;
+   }
+
+   .raster-info h6 {
+     font-size: 1.25rem;
+     margin-bottom: 6px;
+     font-weight: 600;
+     color: #0d6efd; /* primary color for the title */
+   }
+
+   .raster-info .raster-meta {
+     display: block;
+     color: #6c757d;
+     font-size: 0.95rem;
+     margin-bottom: 8px;
+   }
+
+   .raster-info p.description {
+     margin: 0;
+     color: #495057;
+   }
+
+   /* Preserve newlines from Django TextField while keeping site font and wrapping */
+   .preserve-pre {
+     white-space: pre-wrap; /* preserve newlines, but allow wrapping */
+     word-break: break-word;
+     margin: 0;
+     font-family: inherit; /* avoid monospace default of <pre> */
+   }
   </style>
 </head>
 
@@ -136,7 +207,7 @@
                     </p>
                   {% endif %}
                   {% if figure.description %}
-                    <p class="card-text flex-grow-1">{{ figure.description|truncatewords:20 }}</p>
+                    <pre class="card-text flex-grow-1 preserve-pre">{{ figure.description|truncatewords:20 }}</pre>
                   {% endif %}
                 </div>
                 <div class="card-footer bg-transparent">
@@ -195,7 +266,7 @@
                 <p><strong><i class="fas fa-hashtag text-secondary"></i> ID:</strong> <span id="modalFigureId"></span></p>
                 <hr>
                 <h6><i class="fas fa-align-left text-primary"></i> Description </h6>
-                <p id="modalFigureDescription" class="text-muted"></p>
+                <pre id="modalFigureDescription" class="text-muted preserve-pre"></pre>
               </div>
             </div>
           </div>
@@ -208,6 +279,45 @@
       </div>
     </div>
   </div>
+
+  <!-- Raster Map View -->
+     <div class="mt-4">
+      <div class="container mt-5">
+        <h2 class="mb-4">Map showing land-loss velocity of {{ raster_obj.region }}</h2>
+      </div>
+    {% if raster_map %}
+      {% comment %} Expect a RasterMap instance in context as `raster_obj` (optional) {% endcomment %}
+      {% if raster_obj %}
+        <div class="d-flex justify-content-center">
+          <div class="card w-100" style="max-width:1100px; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.06);">
+            <div class="card-body">
+              <h5 class="card-title text-primary mb-2">{{ raster_obj.name }}</h5>
+              {% if raster_obj.date_taken %}
+                <p class="text-muted mb-2 small">Date taken: {{ raster_obj.date_taken|date:"d/m/Y" }}</p>
+              {% endif %}
+              {% if raster_obj.description %}
+                <pre class="card-text text-secondary mb-0 preserve-pre">{{ raster_obj.description }}</pre>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      <div class="raster-map-responsive">
+        {{ raster_map|safe }}
+      </div>
+    {% else %}
+      <div class="d-flex justify-content-center">
+        <div class="w-100" style="max-width:1100px;">
+          <div class="alert alert-warning mb-0">
+            <h6 class="mb-1">No raster map available</h6>
+            <p class="mb-0">No Raster Map found for the selected location.</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="mb-5"></div> <!-- Adds extra space below the map -->
 
   <!-- Bootstrap JS -->
   <script src="{% static '/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

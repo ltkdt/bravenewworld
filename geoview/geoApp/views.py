@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from .forms import DateInput, LastActiveForm
-from .models import StaticFigure
+from .models import StaticFigure, RasterMap
 from django.db.models import Q
 from datetime import datetime
 
@@ -15,12 +15,22 @@ from folium.plugins import MousePosition
 from folium.template import Template
 
 
+min_long_northern_region= 102.144135
+max_long_northern_region= 107.464146
+min_lat_northern_region= 20.72855
+max_lat_northern_region= 23.51667
+
+'''
+
+'''
+
 # Create your views here.
 def home(request):
     form = LastActiveForm()
     shp_dir = os.path.join(os.getcwd(), 'media', 'vietnam')
-
-    m = folium.Map(location=[16.4667, 107.5833], title='Viet Nam' ,zoom_start=7)
+    m = folium.Map(max_bounds = True,location=[16.4667, 107.5833], title='Viet Nam' ,zoom_start=8, max_zoom=12, min_zoom=7,
+                   min_lat=min_lat_northern_region, max_lat=max_lat_northern_region,
+                   min_lon=min_long_northern_region, max_lon=max_long_northern_region)
     style_dbscl = {'fillColor': "#63a6bc", 'color': "#2f81b5"}
     vietnam = gpd.read_file(os.path.join(shp_dir, 'vnm.shp'))
     vietnam_geojson = vietnam.to_crs("EPSG:4326").to_json()
@@ -227,12 +237,14 @@ def rev_click(request):
 def output(request, neartest_location=None):
     # Get the nearest location from URL parameter or set default
     figures = []
+
+    exist_raster_map_flag = False
     
     if neartest_location and neartest_location != "Không có dữ liệu":
         # Get date range from session
         start_date_str = request.session.get('start_active')
         end_date_str = request.session.get('end_active')
-        
+
         # Parse date strings back to date objects
         start_date = None
         end_date = None
@@ -254,6 +266,41 @@ def output(request, neartest_location=None):
                 region=neartest_location,
                 date_taken__range=[start_date, end_date]
             ).order_by('-date_taken')
+
+            RasterObject = RasterMap.objects.filter(
+                region=neartest_location,
+                date_taken__lte=end_date
+                ).order_by('-date_taken').first()
+            
+            image_src = None
+            if RasterObject and RasterObject.image:
+                exist_raster_map_flag = True
+                # prefer filesystem path if file exists on disk
+                try:
+                    img_path = RasterObject.image.path
+                    color_map_path = RasterObject.colormap.path
+                except Exception:
+                    img_path = None
+
+                if img_path and os.path.exists(img_path):
+                    image_src = img_path
+                else:
+                    # fall back to absolute URL (so browser will load it)
+                    image_src = request.build_absolute_uri(RasterObject.image.url)
+
+                left, bottom, right, top = RasterObject.bounds
+                m = folium.Map(max_bounds = True,location=RasterObject.map_center, title='Region of Interest' ,zoom_start=8, max_zoom=12, min_zoom=7)
+                image = folium.raster_layers.ImageOverlay(
+                #image=RasterObject.image.url,
+                image=image_src,
+                bounds=[[bottom, left], [top, right]],
+                opacity=0.8,
+                interactive=True,
+                cross_origin=False,
+                )
+                image.add_to(m)
+                m = m._repr_html_()
+
         elif start_date:
             # Only start date provided - filter from start date onwards
             figures = StaticFigure.objects.filter(
@@ -266,18 +313,33 @@ def output(request, neartest_location=None):
                 region=neartest_location,
                 date_taken__lte=end_date
             ).order_by('-date_taken')
+
+            
+
         else:
             # No date range - show all figures for the region
             figures = StaticFigure.objects.filter(
                 region=neartest_location
             ).order_by('-date_taken')
-    
-    context = {
-        'neartest_location': neartest_location,
-        'figures': figures,
-        'figure_count': len(figures)
-    }
+
+    if exist_raster_map_flag:
+        context = {
+            'neartest_location': neartest_location,
+            'figures': figures,
+            'figure_count': len(figures),
+            'raster_map': m if (neartest_location != "Không có dữ liệu" and end_date) else None,
+        'raster_obj': RasterObject if (neartest_location != "Không có dữ liệu" and end_date) else None,
+        }
+    else:
+        context = {
+            'neartest_location': neartest_location,
+            'figures': figures,
+            'figure_count': len(figures),
+        }
     return render(request, 'geoApp/output.html', context)
+
+
+    #return render(request, 'geoApp/overlay_map.html')
 
 def _3d_dem_view(request):
     return render(request, 'geoApp/dem.html')
