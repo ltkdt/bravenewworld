@@ -21,6 +21,10 @@ from urllib.parse import urlparse, unquote
 import openai
 import base64
 
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
+
 def encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
@@ -352,7 +356,7 @@ def output(request, neartest_location=None):
 
     #return render(request, 'geoApp/overlay_map.html')
 
-client = openai.OpenAI(api_key="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")
+client = openai.OpenAI(api_key=os.getenv("OPEN_AI_API_KEY"))
 
 print()
 
