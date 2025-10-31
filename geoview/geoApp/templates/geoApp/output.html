@@ -133,6 +133,21 @@
      margin: 0;
      font-family: inherit; /* avoid monospace default of <pre> */
    }
+
+   /* Make long descriptions scrollable where appropriate */
+   /* In the figure modal's info panel, allow the description to scroll within the available modal height */
+   .figure-info .preserve-pre {
+     max-height: calc(90vh - 320px); /* leaves space for image/header/footer */
+     overflow: auto;
+     padding-right: 6px; /* ensure scrollbar doesn't overlap text */
+   }
+
+   /* In the raster info card on the page, constrain height and enable scrolling */
+   .raster-info .preserve-pre {
+     max-height: 200px;
+     overflow: auto;
+     padding-right: 6px;
+   }
   </style>
 </head>
 
@@ -272,9 +287,15 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" onclick="downloadImage()">
-            <i class="fas fa-download"></i> Download
-          </button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" onclick="downloadImage()">
+              <i class="fas fa-download"></i> Download
+            </button>
+            <!-- Chatbot button: navigates to chatbot view which renders chatbot.html -->
+            <button type="button" class="btn btn-outline-secondary" onclick="openChatbot()" title="Open chatbot">
+              <i class="fas fa-comments"></i> Chat with bot
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -466,6 +487,20 @@
       document.body.removeChild(link);
     }
 
+    // Open chatbot page and pass current modal image URL as a query parameter
+    function openChatbot() {
+      const img = document.getElementById('modalFigureImage');
+      const src = img ? img.src : '';
+      if (!src) {
+        // If no image is shown, still navigate but without image param
+        window.location.href = '{% url "chat" %}';
+        return;
+      }
+      const url = '{% url "chat" %}' + '?image=' + encodeURIComponent(src);
+      window.location.href = url;
+    }
+
+    
     // Add loading effect for images
     document.addEventListener('DOMContentLoaded', function() {
       const images = document.querySelectorAll('img');

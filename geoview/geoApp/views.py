@@ -1,18 +1,29 @@
 
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from .forms import DateInput, LastActiveForm
 from .models import StaticFigure, RasterMap
 from django.db.models import Q
 from datetime import datetime
+from pathlib import Path
 
 import math
 import os
+import json
 import folium
 import geopandas as gpd
 from folium import GeoJson
 from folium.plugins import MousePosition
 from folium.template import Template
+from urllib.parse import urlparse, unquote
+
+import openai
+import base64
+
+def encode_image_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
 
 
 min_long_northern_region= 102.144135
@@ -340,6 +351,137 @@ def output(request, neartest_location=None):
 
 
     #return render(request, 'geoApp/overlay_map.html')
+
+client = openai.OpenAI(api_key="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")
+
+print()
+
+def chatbot_analyze(request):
+    image_url = request.GET.get('image')
+    preload_image = None
+    # local media folder where uploaded figures are stored
+    media_folder = os.path.join(os.getcwd(), 'media', 'figures')
+    '''
+    if image_url:
+        # Extract filename from provided image URL/path and map it to local media folder
+        parsed = urlparse(image_url)
+        path = parsed.path or image_url
+        filename = os.path.basename(unquote(path))
+        print("Filename extracted:", filename)
+        file_on_system = os.path.join(media_folder, filename)
+        # keep the original image reference for template rendering
+        preload_image = image_url
+    '''
+    parsed = urlparse(image_url)
+    parsed_path = unquote(parsed.path)
+    
+    filename = os.path.basename(parsed_path)
+    #print("joined", os.path.join(Path(os.getcwd()).parents[0], parsed_path))
+    print("Filename from parsed path:", filename)
+    #filename = os.path.basename(unquote(path))
+    
+    file_on_system = os.path.join(media_folder, filename)
+    # keep the original image reference for template rendering
+    preload_image = image_url
+
+    
+    stream = None
+    full_response = ""
+    # ensure file_on_system is set (may have been populated above from image URL)
+    # Do NOT try to open/encode the file yet; do that only when needed and only when file exists.
+    print(file_on_system)
+    #b64_img = encode_image_base64(file_on_system)
+
+    if request.method == 'POST':
+        # Extract message and image URL from incoming request.
+        user_message = ''
+        image_path_or_url = None
+
+        # If client sent JSON, parse it first
+        try:
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body.decode('utf-8') or '{}')
+                user_message = data.get('message') or data.get('question') or ''
+                image_path_or_url = data.get('image') or data.get('image_url')
+        except Exception:
+            # If parsing fails, fall back to form data below
+            pass
+
+        # Fall back to form-encoded POST or GET params
+        if not user_message:
+            user_message = request.POST.get('message', '')
+        if not image_path_or_url:
+            image_path_or_url = request.POST.get('image') or request.GET.get('image')
+
+        # If image is a relative path (starts with '/'), convert to absolute URL
+        if image_path_or_url and image_path_or_url.startswith('/'):
+            try:
+                image_path_or_url = request.build_absolute_uri(image_path_or_url)
+            except Exception:
+                # leave as-is if build fails
+                pass
+
+        # Call the vision-capable model with the image URL and user question
+        try:
+            print(f" Image URL/Path (raw): {image_path_or_url}")
+
+            # Prefer a local file if it exists: try to map the provided image path/url to local media
+            
+            final_image_source = None
+            local_candidate = None
+            try:
+                if image_path_or_url:
+                    parsed = urlparse(image_path_or_url)
+                    filename_send = os.path.basename(unquote(parsed.path))
+                    local_candidate = os.path.join(media_folder, filename_send)
+                    if os.path.exists(local_candidate):
+                        final_image_source = f"data:image/jpeg;base64,{encode_image_base64(local_candidate)}"
+                    else:
+                        # not on disk — fall back to using the provided URL directly
+                        final_image_source = image_path_or_url
+                else:
+                    # If no image_path_or_url provided, but a preload image from GET existed, try it
+                    if file_on_system and os.path.exists(file_on_system):
+                        final_image_source = f"data:image/jpeg;base64,{encode_image_base64(file_on_system)}"
+            except Exception as e:
+                print("Image path handling error:", e)
+                final_image_source = image_path_or_url or None
+
+            print("Using image source for model:", final_image_source)
+            
+            stream = client.responses.create(
+               model="gpt-4.1-mini",
+               instructions="""You are an expert in satellite remote sensing and geospatial analysis, especially InSAR technique and its application on tracking land subsidence and erosion.
+         Answer the question of the user about this topic and refuse to answer if the question is not related to this topic. There is also an image of Digital Elevation Model (DEM) or land displacement map provided.
+         """,
+               input=[{
+        "role": "user",
+        "content": [
+            {"type": "input_text", "text": user_message},
+            {
+                "type": "input_image",
+                "image_url": final_image_source,
+            },
+        ],
+    }],
+               stream=True,
+               temperature=0.3,
+               max_output_tokens=500
+            )
+        except Exception as e:
+            # Return JSON error so the frontend can display a helpful message
+            return JsonResponse({'message': f'Error creating response: {e}'}, status=500)
+
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                # accumulate text deltas
+                full_response += event.delta
+            elif event.type == "response.error":
+                print(f"\nError occurred: {event.error}")
+                
+        return JsonResponse({'message': full_response})
+    context = {'preload_image': preload_image}
+    return render(request, 'geoApp/chatbot.html', context)
 
 def _3d_dem_view(request):
     return render(request, 'geoApp/dem.html')
