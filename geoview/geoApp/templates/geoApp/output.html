@@ -250,9 +250,7 @@
       </div>
     {% endif %}
     
-    <div class="mt-4">
-      <a href="/" class="btn btn-primary">Return to home page</a>
-    </div>
+    
   </div>
 
   <!-- Figure Modal -->
@@ -304,7 +302,8 @@
   <!-- Raster Map View -->
      <div class="mt-4">
       <div class="container mt-5">
-        <h2 class="mb-4">Map showing land-loss velocity of {{ raster_obj.region }}</h2>
+        <h2 class="mb-4">DEM model of {{ raster_obj.region }}</h2>
+        <h6 class="mb-1">This feature is originally intended for overlaying land loss map on a geographical map, but due to time limitation, we've decided to only do this for the available DEM data. Please make sure 22/08/2009 is included the date range and Cao Bang is selected</h6>
       </div>
     {% if raster_map %}
       {% comment %} Expect a RasterMap instance in context as `raster_obj` (optional) {% endcomment %}
@@ -326,12 +325,22 @@
       <div class="raster-map-responsive">
         {{ raster_map|safe }}
       </div>
+        {% if color_map %}
+          <div class="d-flex justify-content-center my-3">
+            <div class="card p-2" style="max-width:420px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+              <div class="card-body text-center p-2">
+                <img src="{{ color_map }}" alt="Color scale" class="img-fluid rotate-90" style="max-height:110px; width:auto;">
+                <p class="small text-muted mb-0 mt-2">Color scale / legend</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
     {% else %}
       <div class="d-flex justify-content-center">
         <div class="w-100" style="max-width:1100px;">
           <div class="alert alert-warning mb-0">
-            <h6 class="mb-1">No raster map available</h6>
-            <p class="mb-0">No Raster Map found for the selected location.</p>
+            <h6 class="mb-1">No DEM available</h6>
+            <p class="mb-0">No DEM found for the selected location.</p>
           </div>
         </div>
       </div>
@@ -339,6 +348,102 @@
   </div>
 
   <div class="mb-5"></div> <!-- Adds extra space below the map -->
+
+  <!-- Z-pattern feature section -->
+  <hr class="my-5">
+  <div class="container my-5">
+    <h3 class="mb-4">Our InSAR processing steps</h3>
+    <!-- Item 1: text left, image right -->
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6">
+        <h5>Downloading and subsetting images</h5>
+        <p class="text-muted">We would download many Single Look Complex (SLC) images from The Alaska Satellite Facility's Vertex. Single Look Complex images are raw images that contain original sensor measurements and are free from interpolation artefacts or projection issues. They are obtained from SAR satellites, and in our cases, Sentinel 1 and Sentinel 2. Each of these has its own use case: Sentinel-1 uses radar that can see through clouds and operates day or night, while Sentinel-2 provides detailed optical imagery of the Earth's surface. We will process the data using the Sentinel Application Platform (SNAP), which is provided for free and open-source by European Space Agency</p>
+        <p class="text-muted">Once downloaded, the first step is to split the images into smaller parts as a full satellite scene is too huge to process. This is called TOPS Split. We will subset the images and select only a specific geographical area of interest defined by its bursts and swaths. This step ensures that the complex and resource-intensive interferometric processing is focused efficiently on the target area, making the entire chain more manageable. The word “TOPS” here it is used for Sentinel-1's TOPS (Terrain Observation with Progressive Scans) mode data</p>
+      </div>
+      <div class="col-md-6 text-center">
+        <img src="{% static 'gallery/step1.jpg' %}" alt="" class="img-fluid rounded">
+        <a href="https://sentinels.copernicus.eu/web/success-stories/-/copernicus-sentinel-1-sentinel-2-and-sentinel-3-satellites" class="small text-muted mt-2">Copernicus Sentinel-1, Sentinel-2 and Sentinel-3 satellites</a>
+      </div>
+    </div>
+
+    <!-- Item 2: image left, text right -->
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6 order-md-2">
+        <h5>Apply orbit files and coregistration</h5>
+        <p class="text-muted">Next, we will apply the orbit files. The orbit files provide the precise satellite paths, which significantly reduce baseline (the distance between two acquisition positions) errors. Since InSAR requires calculating the phase difference from different periods and may not be from the same location, the positional data is critical.</p>
+
+        <p class="text-muted">The Back-Geocoding step is the core process of coregistering the master and slave SLC images with sub-pixel accuracy. It ensures that each ground scatterer, like a rock or building, is represented in exactly the same pixel location in both images. The algorithm uses the satellite orbit information and a digital elevation model to precisely model the geometry for each acquisition, then resamples the slave image to perfectly align it with the master. This meticulous alignment is absolutely critical, as any misregistration directly translates into noise in the final interferogram, preventing the accurate measurement of phase differences</p>
+      </div>
+      <div class="col-md-6 order-md-1 text-center">
+        <img src="{% static 'gallery/step2.jpg' %}" alt="" class="img-fluid rounded">
+        <a href="https://www.researchgate.net/publication/350701138_Urban_Sensing_with_Spaceborne_Interferometric_Synthetic_Aperture_Radar" class="small text-muted mt-2">Typical SAR imaging geometry. The antenna receives the backscattered signal from the illuminated area.</a>
+        
+      </div>
+    </div>
+
+    <!-- Item 3: text left, image right -->
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6">
+        <h5>Build an interferogram from coregistered image</h5>
+        <p class="text-muted">Enhanced Spectral Diversity method performs the joint coregistration of a Sentinel-1 stack by creating a network (graph) of images and then estimating range and azimuth offsets by solving an optimisation problem. This operator estimates rigid azimuth and range offsets (i.e., constant for each image) with respect to a reference image considering the offsets of multiple secondary-secondary pairs. Note that, in this context, an image corresponds to the whole sub-swath of a split S-1 SLC.</p>
+        <p class="text-muted">Once this is done, we can build an interferogram from the coregistered image. An interference pattern is created when two waves meet and combine, just like overlapping ripples in a pond create an interference pattern of peaks and troughs. The same phenomenon happened when two coherent radar waves, reflected from the same ground target at different times, were combined. When the peaks of the waves align, they create constructive interference (a bright fringe); when a peak and a trough align, they create destructive interference (a dark fringe).</p>
+        <p class="text-muted">The resulting interferogram's intensity represents backscatter, while its phase, called the interferometric phase, is a composite signal. This phase contains the desired information on surface deformation, but is also influenced by topography, flat-earth phase, and atmospheric delays. This product is the primary data layer from which ground movement will be isolated in subsequent steps.</p>
+      </div>
+      <div class="col-md-6 text-center">
+        <img src="{% static 'gallery/step3.jpg' %}" alt="" class="img-fluid rounded">
+        <a href="https://www.esa.int/Applications/Observing_the_Earth/How_does_interferometry_work" class="small text-muted mt-2">An example of interferogram. This is Izmit, Turkey 1999 Earthquake Interferogram</a>
+      </div>
+    </div>
+
+    <!-- Item 4: image left, text right -->
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6 order-md-2">
+        <h5>Phase noise removal</h5>
+        <p class="text-muted">The TOPSAR-Deburst step is essential for processing Sentinel-1's TOPS mode data. In this acquisition mode, each swath is captured as a series of individual, overlapping sub-swaths called bursts. The previous interferogram generation is performed separately on each of these bursts. The Deburst operator mosaics or "stitches" these individual, burst-based interferograms into a single, seamless, and continuous raster product. This process eliminates the internal boundaries between bursts, creating a unified interferogram that is ready for subsequent filtering and analysis. Without this step, the final product would be fragmented and unusable for area-wide deformation mapping.</p>
+        <p class="text-muted">Following the creation of the raw interferogram, a sequence of critical steps is employed to isolate the deformation signal by systematically removing phase noise and other unwanted components. The process begins with TopoPhaseRemoval (Step 8), which performs a large-scale "noise" correction by subtracting the topographic phase contribution using an external digital elevation model. This step transforms the interferogram into a differential interferogram (DInSAR), where the remaining fringes are primarily due to displacement, atmospheric effects, and residual noise. To mitigate this residual noise, Multilook (Step 9) is applied, which sacrifices spatial resolution for phase quality by averaging groups of pixels, effectively smoothing the phase image and enhancing its statistical reliability for the subsequent unwrapping process. Finally, GoldsteinPhaseFiltering (Step 10) acts as an adaptive, pixel-by-pixel filter that selectively suppresses random phase noise while preserving the sharpness of the genuine deformation fringes. Together, this trio of operations—from large-scale topographic stripping to spatial averaging and adaptive spectral filtering—progressively refines the interferometric phase, maximizing the signal-to-noise ratio to produce a clean, interpretable product ready for the final unwrapping.</p>
+      </div>
+      <div class="col-md-6 order-md-1 text-center">
+        <img src="{% static 'gallery/step4.jpg' %}" alt="" class="img-fluid rounded">
+        <a href="https://www.un-spider.org/links-and-resources/data-sources/daotm-land-deformation" class="small text-muted mt-2">Land deformation mapping using DInSAR.</a>
+      </div>
+    </div>
+
+    <!-- Item 5: text left, image right -->
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6">
+        <h5>Phase unwrapping and calculating land loss</h5>
+        <p class="text-muted">SNAPHU (Statistical-Cost, Network-Flow Algorithm for Phase Unwrapping) is the critical step that converts the wrapped interferometric phase into a continuous, absolute measurement. The raw interferogram's phase is "wrapped," meaning it is only measured modulo-2π, displaying cyclical fringes from –π to +π. This is analogous to a clock only showing hours from 1 to 12; it reveals relative change within a cycle but not the total number of cycles. SNAPHU resolves this ambiguity by intelligently integrating the phase differences between pixels, identifying integer multiples of 2π that must be added to each pixel to reconstruct a continuous phase field. It uses statistical costs and network-flow methods to find the most spatially consistent solution, effectively "counting" the fringes across the entire image to build an unbroken phase map.</p>
+        <p class="text-muted">Form here, we can calculate land displacement: 
+
+The unwrapped phase (φ_unwrapped) is directly proportional to the change in distance between the ground and the satellite, known as the line-of-sight displacement (ΔR). The fundamental radar interferometry equation is:
+<br> <br> ΔR = (λ * φ_unwrapped) / (4π) <br> <br>
+Where λ is the radar wavelength. A positive phase change typically indicates motion towards the satellite (e.g., uplift), while a negative change indicates motion away (e.g., subsidence).
+To calculate subsidence velocity, this displacement (ΔR) is divided by the time interval (Δt) between the two satellite acquisitions:
+<br> <br> Velocity = ΔR / Δt <br> <br>
+This provides a displacement rate for that single interferometric pair. For a more robust velocity map, this process is repeated over a stack of many images acquired over years. The time series of displacements for each pixel is then analyzed using techniques like linear regression to fit a trend, revealing the average subsidence or uplift velocity over the entire monitoring period.
+</p>
+      </div>
+      <div class="col-md-6 text-center">
+        <img src="{% static 'gallery/step5.jpg' %}" alt="" class="img-fluid rounded">
+        <a href="https://github.com/insarlab/MintPy?tab=readme-ov-file" class="small text-muted mt-2">An example ground deformation velocity map for Fernandina volcano, Galápagos. This is created using MintPy library.</a>
+      </div>
+    </div>
+  </div>
+
+      <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-4">
+      <div class="container text-center">
+        <div class="row">
+          <div class="col-12">
+            <ul class="list-unstyled mb-3">
+              <li>2025. Brave New World. All right reserved</li>
+              <li>This is the web of our team for NASA Space App Challenge</li>
+              <li>Contact: kienlt2306@gmail.com</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
 
   <!-- Bootstrap JS -->
   <script src="{% static '/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

@@ -15,6 +15,9 @@
   <!-- Bootstrap core CSS -->
   <link rel="stylesheet" href="{% static '/bootstrap/css/bootstrap.min.css' %}">
 
+  <!-- Font Awesome for social icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-p6O1X2Y5Yg3Yk1+6Qj2Q8Kq1b6eY3Kz1V6ZJ1G9Qe0s5G6X9Z1q2R3Y4Z5+6a7b8c9d0e1f2g3h4i5j6k7l8m9nA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <!-- Date range picker -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -48,7 +51,7 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="">Welcome</a>
+            <a class="nav-link" href="#about_us_section">About us</a>
           </li>
         </ul>
       </div>
@@ -184,14 +187,50 @@ subsidence disasters rather than merely responding to their consequences.</p>
     </div>
   </div>
 
-        <ul class="list-unstyled">
-          <li>Brave New World</li>
-          <li>This is the web of our team for NASA Space App Challenge</li>
-          <li>Contact: +254759629059</li>
-        </ul>
+    <!-- About us section -->
+    <hr class="my-5">
+    <div class="container mb-5" id="about_us_section">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h2>About us</h2>
+          <p>Our team, Brave New World, consists of four members: Le Trung Kien, Ta Viet Cuong, Vo Phi Thuc and 
+            Nguyen Van Ninh, all students majoring in Electronics and Telecommunications Engineering at the Hanoi 
+            University of Science and Technology (HUST). We met and started working together in the same research 
+            laboratory (SPARC Lab), where we discovered a shared passion for science, technology, and innovation.
+          </p>
+          <p>Our project on land subsidence won first prize at our local event hosted in Ninh Binh, Vietnam. This is a
+             total surprise to us, considering this is our first time participating in a Hackathon, and the first time 
+             researching and working with Synthetic Aperture Radar or SAR technology. Despite that, we have really tried 
+             our best on this project, and hope that our work will be helpful for urban planners and residents whose 
+             regions we research and become a source of inspiration for STEM enthusiasts and students around the world.
+          </p>
+        </div>
+        <div class="col-md-6 text-center">
+          <img src="{% static '/gallery/our_team_image.png' %}" alt="Our team" class="img-fluid rounded">
+        </div>
       </div>
     </div>
-  </div>
+
+        </div> <!-- /.col-lg-12 -->
+      </div> <!-- /.row -->
+    </div> <!-- /.container -->
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-4">
+      <div class="container text-center">
+        <div class="row">
+          <div class="col-12">
+            <ul class="list-unstyled mb-3">
+              <li>2025. Brave New World. All right reserved</li>
+              <li>This is the web of our team for NASA Space App Challenge</li>
+              <li>Contact: kienlt2306@gmail.com</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    
 
   <!-- Bootstrap core JavaScript -->
   <script src="{% static '/jquery/jquery.slim.min.js' %}"></script>

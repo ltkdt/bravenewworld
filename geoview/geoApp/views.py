@@ -49,7 +49,7 @@ def home(request):
     style_dbscl = {'fillColor': "#63a6bc", 'color': "#2f81b5"}
     vietnam = gpd.read_file(os.path.join(shp_dir, 'vnm.shp'))
     vietnam_geojson = vietnam.to_crs("EPSG:4326").to_json()
-    GeoJson(vietnam_geojson, name='dbscl', style_function=lambda x: style_dbscl).add_to(m)
+    GeoJson(vietnam_geojson, name='Vietnam', style_function=lambda x: style_dbscl).add_to(m)
     folium.LayerControl().add_to(m)
 
     # Cao Bang
@@ -222,6 +222,8 @@ def rev_click(request):
     if request.method == 'POST':
         lat = request.POST.get('lat')
         lng = request.POST.get('lng')
+        if lat=="" and lng=="":
+            lat,lng = 22.6667, 106.2500  # Default to Cao Bang if no coordinates provided
         print(request.body)
 
         print(f"Received coordinates: Latitude={lat}, Longitude={lng}")
@@ -293,7 +295,7 @@ def output(request, neartest_location=None):
                 # prefer filesystem path if file exists on disk
                 try:
                     img_path = RasterObject.image.path
-                    color_map_path = RasterObject.colormap.path
+
                 except Exception:
                     img_path = None
 
@@ -304,6 +306,7 @@ def output(request, neartest_location=None):
                     image_src = request.build_absolute_uri(RasterObject.image.url)
 
                 left, bottom, right, top = RasterObject.bounds
+                shp_dir = os.path.join(os.getcwd(), 'media', 'cao_bang')
                 m = folium.Map(max_bounds = True,location=RasterObject.map_center, title='Region of Interest' ,zoom_start=8, max_zoom=12, min_zoom=7)
                 image = folium.raster_layers.ImageOverlay(
                 #image=RasterObject.image.url,
@@ -313,7 +316,13 @@ def output(request, neartest_location=None):
                 interactive=True,
                 cross_origin=False,
                 )
+                style_dbscl = {'fillColor': "#e63306", 'color': "#e65d0e"}
+                cao_bang = gpd.read_file(os.path.join(shp_dir, 'cao_bang.shp'))
+                cao_bang_geojson = cao_bang.to_crs("EPSG:4326").to_json()
+                GeoJson(cao_bang_geojson, name='Cao Bang', style_function=lambda x: style_dbscl).add_to(m)
                 image.add_to(m)
+                folium.LayerControl().add_to(m)
+                
                 m = m._repr_html_()
 
         elif start_date:
@@ -344,6 +353,7 @@ def output(request, neartest_location=None):
             'figure_count': len(figures),
             'raster_map': m if (neartest_location != "Không có dữ liệu" and end_date) else None,
         'raster_obj': RasterObject if (neartest_location != "Không có dữ liệu" and end_date) else None,
+        'color_map': request.build_absolute_uri(RasterObject.colormap.url) if (neartest_location != "Không có dữ liệu" and end_date) else None,
         }
     else:
         context = {
@@ -352,13 +362,9 @@ def output(request, neartest_location=None):
             'figure_count': len(figures),
         }
     return render(request, 'geoApp/output.html', context)
-
-
     #return render(request, 'geoApp/overlay_map.html')
 
 client = openai.OpenAI(api_key=os.getenv("OPEN_AI_API_KEY"))
-
-print()
 
 def chatbot_analyze(request):
     image_url = request.GET.get('image')
@@ -451,12 +457,11 @@ def chatbot_analyze(request):
                 print("Image path handling error:", e)
                 final_image_source = image_path_or_url or None
 
-            print("Using image source for model:", final_image_source)
             
             stream = client.responses.create(
                model="gpt-4.1-mini",
                instructions="""You are an expert in satellite remote sensing and geospatial analysis, especially InSAR technique and its application on tracking land subsidence and erosion.
-         Answer the question of the user about this topic and refuse to answer if the question is not related to this topic. There is also an image of Digital Elevation Model (DEM) or land displacement map provided.
+         Answer the question of the user about this topic and refuse to answer if the question is not related to this topic. There is also an image of Digital Elevation Model (DEM) or unwrapped interferogram from Sentinel-1 / Sentinel 2 satellite created using SNAP that the user may ask you about.
          """,
                input=[{
         "role": "user",

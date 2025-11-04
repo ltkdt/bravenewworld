@@ -121,10 +121,6 @@ DATABASES = {
     },
 }
 
-
-DATABASES = {
-    "default": env.db_url("DATABASE_URL", default="sqlite:///db.sqlite3"),
-}
 '''
 
 # Password validation
