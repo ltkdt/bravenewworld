@@ -5,7 +5,7 @@
 We are Brave New World, a team of students from SPARC Lab, Hanoi University of Science and 
 Techonology participating in this year NASA Space Apps Challenge 2025.
 
-Update on 29th, November, 2025: our team won the first prize of our local event and and became one of the global 
+*Update on 29th, November, 2025*: our team won the first prize of our local event and and became one of the global 
 nominees. The result for global finalists and honorable mentions is out, and that also concludes the journey with
 this Hackathon. Personally, this is is the first Hackathon I ever participated and the experience was very special for me.
 This website will soon be shutdown to save some credits.
