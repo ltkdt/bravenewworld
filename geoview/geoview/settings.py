@@ -35,7 +35,7 @@ DEBUG = env.bool("DEBUG", default=True)  # new
 
 #ALLOWED_HOSTS = ['https://fly.io/apps/processing/monitoring', 'https://processing.fly.dev', 'http://127.0.0.1:8000/']
 
-ALLOWED_HOSTS = ["www.bravenewworldsparc.dev","bravenewworldsparc.dev", "localhost", "127.0.0.1"]  
+ALLOWED_HOSTS = ["www.bravenewworldsparc.dev","bravenewworldsparc.dev", "localhost", "127.0.0.1", "188.166.251.46"]  
 CSRF_TRUSTED_ORIGINS = ["https://www.bravenewworldsparc.dev", "https://bravenewworldsparc.dev", "http://www.bravenewworldsparc.dev" ,"http://localhost:8000"]  
 
 #CSRF_TRUSTED_ORIGINS = ['https://fly.io/apps/processing/monitoring', 'https://processing.fly.dev']

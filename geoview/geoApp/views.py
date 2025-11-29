@@ -388,7 +388,7 @@ def chatbot_analyze(request):
     filename = os.path.basename(parsed_path)
     #print("joined", os.path.join(Path(os.getcwd()).parents[0], parsed_path))
     print("Filename from parsed path:", filename)
-    #filename = os.path.basename(unquote(path))
+    #filename = os.path.basename(unquote(path)):
     
     file_on_system = os.path.join(media_folder, filename)
     # keep the original image reference for template rendering
@@ -433,7 +433,6 @@ def chatbot_analyze(request):
 
         # Call the vision-capable model with the image URL and user question
         try:
-            print(f" Image URL/Path (raw): {image_path_or_url}")
 
             # Prefer a local file if it exists: try to map the provided image path/url to local media
             
@@ -458,7 +457,7 @@ def chatbot_analyze(request):
                 final_image_source = image_path_or_url or None
 
             
-            stream = client.responses.create(
+            output = client.responses.create(
                model="gpt-4.1-mini",
                instructions="""You are an expert in satellite remote sensing and geospatial analysis, especially InSAR technique and its application on tracking land subsidence and erosion.
          Answer the question of the user about this topic and refuse to answer if the question is not related to this topic. There is also an image of Digital Elevation Model (DEM) or unwrapped interferogram from Sentinel-1 / Sentinel 2 satellite created using SNAP that the user may ask you about.
@@ -473,7 +472,7 @@ def chatbot_analyze(request):
             },
         ],
     }],
-               stream=True,
+               stream=False,
                temperature=0.3,
                max_output_tokens=500
             )
@@ -481,12 +480,7 @@ def chatbot_analyze(request):
             # Return JSON error so the frontend can display a helpful message
             return JsonResponse({'message': f'Error creating response: {e}'}, status=500)
 
-        for event in stream:
-            if event.type == "response.output_text.delta":
-                # accumulate text deltas
-                full_response += event.delta
-            elif event.type == "response.error":
-                print(f"\nError occurred: {event.error}")
+        full_response = output.output_text
                 
         return JsonResponse({'message': full_response})
     context = {'preload_image': preload_image}

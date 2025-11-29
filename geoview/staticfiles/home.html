@@ -70,11 +70,16 @@
     <form id="coordForm" action="/revClick/" method="POST">
           <div class="row justify-content-center mb-2">
             <div class="col-12">
-              <label class="form-label h5">How to use</label>
+              <label class="form-label h5">A quick guide for our website</label>
               <div class="text-muted small mt-2">
-                Please select the period of time you want to examine or two identical dates to chooose a single day <br>
-                Then select a coordinate in the area of your interest and the system will try to detect the closest location <br>
-                where data is available. 
+                Please select the period of time and location you want to examine. The default location is Cao Bang, and the default date has been provided, so you can just click submit right away.
+                <br>
+                Since processing SAR images requires heavy computational power, our data is limited. The only location that the data is available is the area with the red markers, preferably Cao Bang (the rightmost marker). Click on the location and make sure that there is a popup showing the latitude and longitude of the location.
+                <br>
+                We only have DEM data for the year 2007, 2008, and 2009. InSAR interferograms are only available for following month:  1/2023, 12/2023, 1/2024, 12/2024, 1/2025, 12/2025
+                <br>
+                So your range of date selection should include these months or year.
+
               </div>
             </div>
           </div>
@@ -193,12 +198,12 @@ subsidence disasters rather than merely responding to their consequences.</p>
       <div class="row align-items-center">
         <div class="col-md-6">
           <h2>About us</h2>
-          <p>Our team, Brave New World, consists of four members: Le Trung Kien, Ta Viet Cuong, Vo Phi Thuc and 
+          <p class="text-left">Our team, Brave New World, consists of four members: Le Trung Kien, Ta Viet Cuong, Vo Phi Thuc and 
             Nguyen Van Ninh, all students majoring in Electronics and Telecommunications Engineering at the Hanoi 
             University of Science and Technology (HUST). We met and started working together in the same research 
             laboratory (SPARC Lab), where we discovered a shared passion for science, technology, and innovation.
           </p>
-          <p>Our project on land subsidence won first prize at our local event hosted in Ninh Binh, Vietnam. This is a
+          <p class="text-left">Our project on land subsidence won first prize at our local event hosted in Ninh Binh, Vietnam. This is a
              total surprise to us, considering this is our first time participating in a Hackathon, and the first time 
              researching and working with Synthetic Aperture Radar or SAR technology. Despite that, we have really tried 
              our best on this project, and hope that our work will be helpful for urban planners and residents whose 
@@ -206,7 +211,7 @@ subsidence disasters rather than merely responding to their consequences.</p>
           </p>
         </div>
         <div class="col-md-6 text-center">
-          <img src="{% static '/gallery/our_team_image.png' %}" alt="Our team" class="img-fluid rounded">
+          <img src="{% static 'gallery/our_team.jpg' %}" alt="Our team" class="img-fluid rounded">
         </div>
       </div>
     </div>
